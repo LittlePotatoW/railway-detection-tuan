@@ -7,4 +7,4 @@ __all__ = [
     'ImageLoader',
     'PIL2numpyf',
     'numpy2PIL',
-    'PIL2gray']
+    'PIL2gray',]
