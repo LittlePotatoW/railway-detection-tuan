@@ -4,8 +4,14 @@ from typing import Tuple
 
 class BaseAlgor:
     @staticmethod
-    def binarize(img: np.ndarray, threshold: float = 0.5, max_val: float = 255.0) -> np.ndarray:
-        return (img > threshold * max_val).astype(np.uint8) * 255
+    def binarizef(img: np.ndarray, threshold: float = 0.5, max_val: float = 255.0) -> np.ndarray:
+        return (img > threshold * max_val).astype(np.float32) * 255
+    
+    @staticmethod
+    def invert(img: np.ndarray) -> np.ndarray:
+        # 二值反转 白变黑 黑变白
+        if img.max() > 1.0: return (255.0 - img).astype(np.float32)
+        return (1.0 - img).astype(np.float32)
 
     @staticmethod
     def standardize(img: np.ndarray, 
@@ -45,3 +51,43 @@ class BaseAlgor:
         save_img = BaseAlgor.normalize(save_img)
         save_img = BaseAlgor.f1tof255(save_img)
         return save_img
+    
+    @staticmethod
+    def erode(img: np.ndarray, size: int = 3) -> np.ndarray:
+        # 腐蚀
+        if size < 1:
+            size = 1
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (size, size))
+        if img.dtype not in (np.uint8, np.float32, np.float64):
+            img = img.astype(np.float32)
+        return cv2.erode(img, kernel, iterations=1)
+
+    @staticmethod
+    def dilate(img: np.ndarray, size: int = 3) -> np.ndarray:
+        # 膨胀
+        if size < 1:
+            size = 1
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (size, size))
+        if img.dtype not in (np.uint8, np.float32, np.float64):
+            img = img.astype(np.float32)
+        return cv2.dilate(img, kernel, iterations=1)
+
+    @staticmethod
+    def opening(img: np.ndarray, size: int = 3) -> np.ndarray:
+        # 开运算 先腐蚀后膨胀
+        if size < 1:
+            size = 1
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (size, size))
+        if img.dtype not in (np.uint8, np.float32, np.float64):
+            img = img.astype(np.float32)
+        return cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel, iterations=1)
+
+    @staticmethod
+    def closing(img: np.ndarray, size: int = 3) -> np.ndarray:
+        # 闭运算 先膨胀后腐蚀
+        if size < 1:
+            size = 1
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (size, size))
+        if img.dtype not in (np.uint8, np.float32, np.float64):
+            img = img.astype(np.float32)
+        return cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel, iterations=1)

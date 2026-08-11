@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+from pathlib import Path
 
 class NormalModel:
     def __init__(self, normal_imgs: list[np.ndarray] | None = None, K: int = 16):
@@ -39,3 +40,26 @@ class NormalModel:
         return self.mu
     def get_sigma(self):
         return self.sigma
+
+    def save(self, path: str | Path) -> None:
+        # 保存模型完整状态
+        arrays = {
+            "K": np.asarray(self.K),
+            "count": np.asarray(self.count),}
+        for key, arr in [("sum", self.sum), ("sum_sq", self.sum_sq),
+                         ("mu", self.mu), ("sigma", self.sigma)]:
+            if arr is not None: arrays[key] = arr
+        np.savez_compressed(path, allow_pickle = False, **arrays)
+
+    @classmethod
+    def load(cls, path: str | Path) -> "NormalModel":
+        # 从文件加载模型
+        data = np.load(path)
+        model = cls.__new__(cls)
+        model.K = int(data["K"])
+        model.count = int(data["count"])
+        model.sum = data["sum"] if "sum" in data.files else None
+        model.sum_sq = data["sum_sq"] if "sum_sq" in data.files else None
+        model.mu = data["mu"] if "mu" in data.files else None
+        model.sigma = data["sigma"] if "sigma" in data.files else None
+        return model

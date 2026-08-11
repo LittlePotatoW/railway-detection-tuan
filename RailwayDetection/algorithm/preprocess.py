@@ -22,6 +22,12 @@ class Preprocess:
         return cv2.warpAffine(img, M, (img.shape[1], img.shape[0])), response
     
     @staticmethod
+    def align_trans_s(img: np.ndarray, dx: float, dy: float) -> np.ndarray:
+        # 按平移量对齐图像 平移变换
+        M = np.array([[1, 0, dx], [0, 1, dy]], dtype = np.float32)
+        return cv2.warpAffine(img, M, (img.shape[1], img.shape[0]))
+    
+    @staticmethod
     def match_hist(img: np.ndarray, ref: np.ndarray) -> np.ndarray:
         # 直方图匹配 按参考图对齐明暗
         def cdf(img: np.ndarray) -> np.ndarray:
@@ -76,3 +82,15 @@ class Preprocess:
         # 由于浮点误差，可能有极小的负值或超出，可做裁剪
         img_filtered = np.clip(img_filtered, 0, 255)
         return img_filtered.astype(img.dtype)
+    
+    @staticmethod
+    def fill_from_center_f(binary: np.ndarray, connectivity: int = 8) -> np.ndarray:
+        # 从中心开始填充二值图 返回0-255 float32
+        h, w = binary.shape
+        cy, cx = h // 2, w // 2
+        if binary[cy, cx] == 0:
+            return np.zeros((h, w), dtype=np.float32)
+        bi = (binary > 0).astype(np.uint8) * 255
+        n, labels = cv2.connectedComponents(bi, connectivity=connectivity)
+        center_label = labels[cy, cx]
+        return (labels == center_label).astype(np.float32) * 255
