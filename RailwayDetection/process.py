@@ -23,6 +23,8 @@ class Pipeline:
         dx, angle, (aL, bL), (aR, bR) = Preprocess.get_fix_dx_angle(mask)
         img = Preprocess.rotate_image(img, angle)
         img = Preprocess.translate_image(img, dx)
+        mask = Preprocess.rotate_image(mask, angle, is_mask=True)
+        mask = Preprocess.translate_image(mask, dx, is_mask=True)
         return img, mask, dx, angle, (aL, bL), (aR, bR)
 
     @staticmethod
@@ -59,8 +61,8 @@ class OperModel:
             img = PIL2numpyf(PIL2gray(ImageLoader.usePIL(f)))          # 加载图片并转为 灰度图 np.ndarray
             if model.sum is not None and model.sum.shape != img.shape:
                 raise ValueError(f"图片尺寸 {img.shape} 与模型已训练的尺寸 {model.sum.shape} 不一致")
-            aligned = Pipeline.align(img)[0]          # 新矫正逻辑：每张图独立扶正+居中
-            model.add(Pipeline.preprocess(aligned))
+            aligned, mask, *_ = Pipeline.align(img)   # 每张图独立扶正+居中，拿到自己的掩膜
+            model.add(Pipeline.preprocess(aligned), masks=mask)
 
         model.build()
         if save_path: model.save(save_path)
