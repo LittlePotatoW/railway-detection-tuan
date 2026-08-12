@@ -14,10 +14,8 @@ class BoxCal:
     @staticmethod
     def threshold(z : np.ndarray, T: float = 4.0, mask: np.ndarray | None = None)-> np.ndarray:
         # 阈值分割
-        if mask is None:
-            binary = (z > T).astype(np.uint8) * 255
-        else:
-            binary = ((z > T) & (mask > 0)).astype(np.uint8) * 255
+        if mask is None: binary = (z > T).astype(np.uint8) * 255
+        else: binary = ((z > T) & (mask > 0)).astype(np.uint8) * 255
         return binary
     
     @staticmethod
@@ -35,6 +33,5 @@ class BoxCal:
         boxes = []
         for i in range(1, n):
             x, y, w, h, area = stats[i]
-            if area >= min_area:
-                boxes.append((x, y, w, h))
+            if area >= min_area: boxes.append((x, y, w, h))
         return boxes

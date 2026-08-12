@@ -8,24 +8,46 @@ DIRECTED_FILTER_FREQUENCY_AXIS_TO_IMG: int = 4      # 频域掩膜（椭圆）�
 class Preprocess:
 
     @staticmethod
-    def get_shift(img: np.ndarray, ref: np.ndarray) -> Tuple[float, float, float]:
-        # 返回两张图的平移量
-        shift, response = cv2.phaseCorrelate(img, ref)
-        dx, dy = shift
-        return dx, dy, response
+    def get_fix_dx_angle(mask: np.ndarray) -> Tuple[float, float, Tuple[float, float], Tuple[float, float]]:
+        # 输入图像掩膜 返回图像的x方向平移量和旋转量 即 将铁轨移至中间
+        # 逐行扫描
+        h, w = mask.shape
+        ys, xs = np.where(mask > 0)
 
-    @staticmethod
-    def align_trans(img: np.ndarray, ref: np.ndarray) -> Tuple[np.ndarray, float]:
-        # 按参考图对齐图像 平移变换
-        dx, dy, response = Preprocess.get_shift(img, ref)
-        M = np.array([[1, 0, dx], [0, 1, dy]], dtype = np.float32)
-        return cv2.warpAffine(img, M, (img.shape[1], img.shape[0])), response
+        left = np.full(h, w, dtype=np.float64)
+        right = np.full(h, -1.0, dtype=np.float64)
+        np.minimum.at(left, ys, xs)
+        np.maximum.at(right, ys, xs)
+
+        valid = np.where((left < w) & (right >= 0))[0]
+        bL, aL = np.polyfit(valid, left[valid], 1)
+        bR, aR = np.polyfit(valid, right[valid], 1)
+
+        aC, bC = (aL + aR) / 2, (bL + bR) / 2
+
+        angle_deg = -np.degrees(np.arctan(bC))
+
+        cx, cy = w / 2.0, h / 2.0
+        dx = ((cx - aC) - bC * cy) / np.sqrt(1.0 + bC**2)
+
+        return dx, angle_deg, (aL, bL), (aR, bR)
     
     @staticmethod
-    def align_trans_s(img: np.ndarray, dx: float, dy: float) -> np.ndarray:
-        # 按平移量对齐图像 平移变换
+    def rotate_image(img: np.ndarray, angle_deg: float, center=None, is_mask: bool = False) -> np.ndarray:
+        # 绕图像中心旋转
+        h, w = img.shape[:2]
+        if center is None:
+            center = (w / 2.0, h / 2.0)
+        M = cv2.getRotationMatrix2D(center, angle_deg, 1.0)
+        flags = cv2.INTER_NEAREST if is_mask else cv2.INTER_LINEAR
+        return cv2.warpAffine(img, M, (w, h), flags=flags)
+    
+    @staticmethod
+    def translate_image(img: np.ndarray, dx: float, dy: float = 0.0, is_mask: bool = False) -> np.ndarray:
+        # 平移图像
         M = np.array([[1, 0, dx], [0, 1, dy]], dtype = np.float32)
-        return cv2.warpAffine(img, M, (img.shape[1], img.shape[0]))
+        flags = cv2.INTER_NEAREST if is_mask else cv2.INTER_LINEAR
+        return cv2.warpAffine(img, M, (img.shape[1], img.shape[0]), flags=flags)
     
     @staticmethod
     def match_hist(img: np.ndarray, ref: np.ndarray) -> np.ndarray:
@@ -82,6 +104,21 @@ class Preprocess:
         # 由于浮点误差，可能有极小的负值或超出，可做裁剪
         img_filtered = np.clip(img_filtered, 0, 255)
         return img_filtered.astype(img.dtype)
+    
+    @staticmethod
+    def set_border_black(img: np.ndarray, border: int | tuple[int, int, int, int] = 2) -> np.ndarray:
+        if isinstance(border, int): top = bottom = left = right = border
+        else: top, bottom, left, right = border
+        h, w = img.shape[:2]
+        top, bottom, left, right = max(0, top), max(0, bottom), max(0, left), max(0, right)
+        top, bottom, left, right = min(h, top), min(h, bottom), min(w, left), min(w, right)
+
+        out = img.copy()
+        if top > 0: out[:top, :] = 0
+        if bottom > 0: out[-bottom:, :] = 0
+        if left > 0: out[:, :left] = 0
+        if right > 0: out[:, -right:] = 0
+        return out
     
     @staticmethod
     def fill_from_center_f(binary: np.ndarray, connectivity: int = 8) -> np.ndarray:
