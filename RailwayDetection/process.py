@@ -10,6 +10,13 @@ IMG_SUFFIX: Set = {".png", ".jpg", ".jpeg", ".bmp"}
 class Pipeline:
 
     @staticmethod
+    def load_image(path: str | Path) -> np.ndarray:
+        img = ImageLoader.usePIL(path)
+        img = PIL2gray(img)
+        img = PIL2numpyf(img)
+        return img
+
+    @staticmethod
     def make_mask(img: np.ndarray) -> np.ndarray:
         s_img = BaseAlgor.binarizef(img, 0.3)
         s_img = Preprocess.set_border_black(s_img)
@@ -32,6 +39,22 @@ class Pipeline:
         save_img = BaseAlgor.stand_nor_to255(img)
         save_img = Preprocess.directional_filter_frequency(save_img, 0, DIRECT_FILTER_REDIUS)
         return save_img
+    
+    @staticmethod
+    def score_cal(img: np.ndarray, model: NormalModel, eps: float = 0.1) -> np.ndarray:
+        mean, sigma = model.get_mean(), model.get_sigma()
+        assert mean is not None
+        assert sigma is not None
+        return ScoreCal.Z_score(img, model.K, eps, mean, sigma)
+    
+    @staticmethod
+    def detecte(z: np.ndarray, T: float = 2.5, mask: np.ndarray | None = None,
+                kernel_size: int = 3,
+                min_area: int = 30) -> list[tuple[int, int, int, int]]:
+        binary = BoxCal.threshold(z, T, mask)
+        binary = BoxCal.morphological_cleanup(binary, kernel_size)
+        return BoxCal.extract_boxes(binary, min_area)
+
 
 class OperModel:
     @staticmethod

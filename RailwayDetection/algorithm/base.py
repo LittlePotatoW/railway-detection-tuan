@@ -91,3 +91,13 @@ class BaseAlgor:
         if img.dtype not in (np.uint8, np.float32, np.float64):
             img = img.astype(np.float32)
         return cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel, iterations=1)
+
+    @staticmethod
+    def to_fft(img: np.ndarray) -> np.ndarray:
+        f = np.fft.fft2(img)
+        return np.stack([f.real, f.imag], axis=-1).astype(np.float32)
+
+    @staticmethod
+    def from_fft(f: np.ndarray) -> np.ndarray:
+        f = f[..., 0] + 1j * f[..., 1]
+        return np.real(np.fft.ifft2(f)).astype(np.float32)
