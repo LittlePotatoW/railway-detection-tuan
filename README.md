@@ -14,19 +14,8 @@
 ```
 railway-detection-tuan/
 ├── RailwayDetection/        # 主包
-│   ├── process.py           # 高层流水线：Pipeline、OperModel
-│   ├── algorithm/
-│   │   ├── base.py          # 基础图像算法（二值化、形态学、归一化等）
-│   │   ├── preprocess.py    # 对齐、旋转平移、定向滤波、直方图匹配
-│   │   ├── maintain_model.py# NormalModel：统计模型的训练与存取
-│   │   └── detecte.py       # Z-score 打分、阈值分割、连通域框提取
-│   └── utility/             # 图像读取与格式转换
 ├── debug_tools/             # 可视化辅助（show、draw_boxes 等）
 ├── test/                    # 示例脚本与已训练模型
-│   ├── build-model.py       # 从正常图片训练模型
-│   ├── load-model.py        # 加载模型并查看均值/方差
-│   ├── test.py              # 单张图片检测演示
-│   └── model.npz            # 已训练好的模型文件
 ├── nor_img/                 # 正常轨道样本图
 ├── s_img/                   # 异常样本图
 ```
@@ -49,16 +38,6 @@ railway-detection-tuan/
 | `OperModel.load_model(path)` | 加载 `.npz` 模型 |
 | `OperModel.save_model(model, path)` | 保存模型 |
 
-## 部分参数说明
-
-| 参数 | 默认值 | 含义 |
-| --- | --- | --- |
-| `T` | `2.5` | Z-score 阈值，越大越严格，越小越敏感 |
-| `min_area` | `30` | 异常区域最小面积（像素），用于过滤噪声 |
-| `kernel_size` | `3` | 形态学清理核大小 |
-| `K` | `16` | 统计模型邻域窗口大小（`boxFilter` 窗口） |
-| `DIRECT_FILTER_REDIUS` | `4` | 频率域定向滤波半径 |
-
 ## 注意事项
 
 - 训练数据应只包含正常轨道图片，且所有图片尺寸一致，否则会报错
@@ -66,4 +45,9 @@ railway-detection-tuan/
 
 ## License
 
-本项目基于 [MIT License](LICENSE) 开源。
+本项目采用基于 MIT 协议修改的自定义协议，详见 [LICENSE](LICENSE)。
+
+除 MIT 原有条款外，附加两条**附加条款**：
+
+1. **署名要求**：任何使用、复制、修改、分发或发布基于本软件（整体或部分）的成果时，必须标明出处或进行正确引用，至少包括原作者（LittlePotatoW）以及原始仓库链接。
+2. **比赛限制**：本软件不得以任何形式（全部或部分）用于参与、准备或支持**2026 年 12 月 1 日前举办**的任何类别比赛（包括但不限于学术、商业、线上比赛、黑客松或挑战赛）。该限制于 2026 年 12 月 1 日自动失效。
