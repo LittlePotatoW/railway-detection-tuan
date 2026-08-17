@@ -20,5 +20,5 @@ Our model is compact, computationally simple, and highly sensitive, making it su
 
 ## License
 
-This project is distributed under a custom license based on the MIT License. It requires attribution when the code is cited or used, and prohibits using it, in whole or in part, in competitions held before October 2026.
+This project is distributed under a custom license based on the MIT License. It requires attribution when the code is cited or used, and prohibits using it, in whole or in part, in competitions held before December 1, 2026.
 See [LICENSE](LICENSE) for details.
