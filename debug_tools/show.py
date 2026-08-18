@@ -4,7 +4,7 @@ from PIL import Image, ImageDraw
 
 
 def show(images, cols=3, figsize=(12, 10)):
-    """通用显示：接受单张/多张图像（灰度、彩色、PIL、float32、uint8 均可）。"""
+    # 通用显示 接受单张/多张图像 灰度、彩色、PIL、float32、uint8 均可
     if isinstance(images, Image.Image):
         images = [images]
     elif isinstance(images, np.ndarray):
@@ -41,7 +41,7 @@ def show(images, cols=3, figsize=(12, 10)):
 
 
 def _to_pil_rgb(img: np.ndarray) -> Image.Image:
-    """np.ndarray（灰度/彩色，float32 0~255 或 0~1，uint8）→ PIL RGB。"""
+    # np.ndarray PIL RGB
     arr = np.asarray(img)
     if arr.ndim == 2:
         arr = np.clip(arr, 0, 255).round().astype(np.uint8)
@@ -57,10 +57,7 @@ def _to_pil_rgb(img: np.ndarray) -> Image.Image:
 
 def draw_boxes(img: np.ndarray, boxes: list,
                color=(0, 0, 255), linewidth: int = 2) -> Image.Image:
-    """在图像上画框，返回 PIL 图像（不改原数组）。默认蓝色。
-
-    boxes: [(x, y, w, h), ...]
-    """
+    # 在图像上画框 返回 PIL 图像
     out = _to_pil_rgb(img)
     draw = ImageDraw.Draw(out)
     for (x, y, w, h) in boxes:
@@ -70,10 +67,7 @@ def draw_boxes(img: np.ndarray, boxes: list,
 
 def draw_lines(img: np.ndarray, lines: list,
                color=(0, 0, 255), linewidth: int = 2) -> Image.Image:
-    """在图像上画线，返回 PIL 图像（不改原数组）。默认蓝色。
-
-    lines: 每条线是 (a, b)（x = a + b*y）或两点 ((x1,y1),(x2,y2))
-    """
+    # 在图像上画线 返回 PIL 图像
     out = _to_pil_rgb(img)
     draw = ImageDraw.Draw(out)
     h = out.size[1]

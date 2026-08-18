@@ -13,7 +13,7 @@ MODEL_PATH = r"model.npz"
 
 model = OperModel.load_model(MODEL_PATH)
 
-img = Pipeline.load_image(r"C:\Users\小土豆\Desktop\铁轨异物\缺陷照片\01.png")
+img = Pipeline.load_image(r"")
 imgl = [img]
 
 aligned, mask, dx, angle, (aL, bL), (aR, bR) = Pipeline.align(img)
