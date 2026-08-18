@@ -30,6 +30,7 @@ class DetectTab(tk.Frame):
         super().__init__(master)
         self.app = app
         self._image_path: str | None = None
+        self._display_size: tuple[int, int] | None = None
         self._build()
 
     def _build(self):
@@ -143,14 +144,22 @@ class DetectTab(tk.Frame):
             self.__log(f"  [{idx}] x={x}, y={y}, w={w}, h={h}")
 
     def __show_image(self, label: tk.Label, image: Image.Image):
-        w, h = label.winfo_width(), label.winfo_height()
-        if w < 10 or h < 10: w, h = 320, 240
-        max_w, max_h = max(w - 12, 120), max(h - 12, 120)
+        # 统一参考尺寸 保证两张图显示一致
+        max_w, max_h = self.__get_display_size()
         copy = image.copy()
         copy.thumbnail((max_w, max_h))
         photo = ImageTk.PhotoImage(copy)
         label.config(image=photo)
         label.image = photo                     # type: ignore
+
+    def __get_display_size(self) -> tuple[int, int]:
+        # 计算 缓存 参考尺寸 避免两张图大小不一致
+        if self._display_size is None:
+            w = min(self.image_label_input.winfo_width(), self.image_label_result.winfo_width())
+            h = min(self.image_label_input.winfo_height(), self.image_label_result.winfo_height())
+            if w >= 10 and h >= 10: self._display_size = (max(w - 12, 120), max(h - 12, 120))
+            else: return 320, 240
+        return self._display_size
 
     def __log(self, message: str):
         self.log_text.insert(tk.END, message + "\n")
